@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>كتالوج النجار</title>
+<link rel="manifest" href="/manifest.webmanifest" />
+<meta name="theme-color" content="#c9a26a" />
+<link rel="stylesheet" href="/src/styles.css" />
+</head>
+<body class="customer">
+<header id="cust-header">
+  <h1 id="shop-name">ورشة النجارة</h1>
+  <input id="search" placeholder="ابحث..." />
+</header>
+
+<main id="cust-grid"></main>
+
+<div id="viewer" class="hidden">
+  <canvas id="viewer-canvas"></canvas>
+  <div id="viewer-top">
+    <button id="btn-close">✕</button>
+    <div id="viewer-title">—</div>
+    <button id="btn-toggle-all">فتح/غلق الكل</button>
+  </div>
+  <div id="viewer-bottom">
+    <div id="viewer-tools">
+      <button id="v-open" class="accent">فتح الكل</button>
+      <button id="v-close">غلق الكل</button>
+      <button id="v-fit">ملاءمة</button>
+      <button id="v-share">مشاركة</button>
+    </div>
+    <div id="viewer-parts"></div>
+  </div>
+</div>
+
+<script type="module" src="/src/customer.js"></script>
+</body>
+</html>

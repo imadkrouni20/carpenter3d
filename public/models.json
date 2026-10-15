@@ -1,0 +1,47 @@
+[
+  {
+    "id": "wardrobe_01",
+    "name": "خزانة 3 أبواب",
+    "category": "خزائن",
+    "price": 4500,
+    "currency": "MAD",
+    "tags": ["مودرن", "غرفة نوم"],
+    "published": true,
+    "version": 1,
+    "dimensions": { "w": 180, "h": 220, "d": 60, "unit": "cm" },
+    "parts": [
+      {
+        "id": "body", "type": "box", "size": [180, 220, 60], "pos": [0, 110, 0],
+        "material": { "color": "#e8ddd0", "roughness": 0.75, "metalness": 0.05 }
+      },
+      {
+        "id": "door_l", "type": "box", "size": [58, 218, 2], "pos": [-59, 110, 31],
+        "material": { "color": "#b98a55", "roughness": 0.55, "metalness": 0.08 },
+        "label": "الباب الأيسر",
+        "motion": "rotate", "axis": "y", "direction": 1, "max": 110,
+        "pivot": [-88, 110, 31]
+      },
+      {
+        "id": "door_r", "type": "box", "size": [58, 218, 2], "pos": [59, 110, 31],
+        "material": { "color": "#b98a55", "roughness": 0.55, "metalness": 0.08 },
+        "label": "الباب الأيمن",
+        "motion": "rotate", "axis": "y", "direction": -1, "max": 110,
+        "pivot": [88, 110, 31]
+      },
+      {
+        "id": "drawer_1", "type": "box", "size": [55, 20, 55], "pos": [-59, 40, 28],
+        "material": { "color": "#a67a49", "roughness": 0.6 },
+        "label": "درج 1",
+        "motion": "slide", "axis": "z", "direction": 1, "max": 45,
+        "pivot": [-59, 40, 28]
+      },
+      {
+        "id": "drawer_2", "type": "box", "size": [55, 20, 55], "pos": [59, 40, 28],
+        "material": { "color": "#a67a49", "roughness": 0.6 },
+        "label": "درج 2",
+        "motion": "slide", "axis": "z", "direction": 1, "max": 45,
+        "pivot": [59, 40, 28]
+      }
+    ]
+  }
+]

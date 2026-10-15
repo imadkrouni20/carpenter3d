@@ -1,0 +1,10 @@
+{
+  "name": "كتالوج النجار",
+  "short_name": "كتالوج",
+  "start_url": "./customer.html",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#eef2f7",
+  "theme_color": "#c9a26a",
+  "icons": []
+}
