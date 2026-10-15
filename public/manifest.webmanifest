@@ -1,10 +1,18 @@
 {
-  "name": "كتالوج النجار",
-  "short_name": "كتالوج",
-  "start_url": "./customer.html",
+  "name": "Carpenter3D — محرر النجارة",
+  "short_name": "Carpenter3D",
+  "description": "محرر ثلاثي الأبعاد لتصميم منتجات النجارة",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#eef2f7",
-  "theme_color": "#c9a26a",
-  "icons": []
+  "background_color": "#2b303b",
+  "theme_color": "#2b303b",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
 }
