@@ -1,0 +1,70 @@
+[
+  {
+    "id": "wardrobe_01",
+    "name": "خزانة 3 أبواب",
+    "category": "خزائن",
+    "price": 4500,
+    "currency": "MAD",
+    "tags": ["مودرن", "غرفة نوم"],
+    "published": true,
+    "version": 2,
+    "dimensions": { "w": 180, "h": 220, "d": 60, "unit": "cm" },
+    "parts": [
+      {
+        "id": "body",
+        "shape": "box",
+        "size": [180, 220, 60],
+        "pos": [0, 110, 0],
+        "material": { "materialId": "mdf" }
+      },
+      {
+        "id": "door_l",
+        "shape": "box",
+        "size": [58, 218, 2],
+        "pos": [-59, 110, 31],
+        "material": { "materialId": "chene" },
+        "role": "door",
+        "motion": {
+          "type": "rotate", "axis": "y", "direction": 1, "range": 110,
+          "speed": 8, "pivot": [-88, 110, 31], "label": "الباب الأيسر"
+        }
+      },
+      {
+        "id": "door_r",
+        "shape": "box",
+        "size": [58, 218, 2],
+        "pos": [59, 110, 31],
+        "material": { "materialId": "chene" },
+        "role": "door",
+        "motion": {
+          "type": "rotate", "axis": "y", "direction": -1, "range": 110,
+          "speed": 8, "pivot": [88, 110, 31], "label": "الباب الأيمن"
+        }
+      },
+      {
+        "id": "drawer_1",
+        "shape": "box",
+        "size": [55, 20, 55],
+        "pos": [-59, 40, 28],
+        "material": { "materialId": "chene" },
+        "role": "drawer",
+        "motion": {
+          "type": "slide", "axis": "z", "direction": 1, "range": 45,
+          "speed": 8, "label": "درج سفلي يسار"
+        }
+      },
+      {
+        "id": "drawer_2",
+        "shape": "box",
+        "size": [55, 20, 55],
+        "pos": [59, 40, 28],
+        "material": { "materialId": "chene" },
+        "role": "drawer",
+        "motion": {
+          "type": "slide", "axis": "z", "direction": 1, "range": 45,
+          "speed": 8, "label": "درج سفلي يمين"
+        }
+      }
+    ]
+  }
+]

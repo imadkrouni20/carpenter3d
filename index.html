@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Carpenter3D</title>
+  <script type="module" crossorigin src="/carpenter3d/assets/main-CXDpE021.js"></script>
+  <link rel="modulepreload" crossorigin href="/carpenter3d/assets/interaction-BwRq18bh.js">
+  <link rel="stylesheet" crossorigin href="/carpenter3d/assets/interaction-DosWV3jW.css">
+</head>
+<body>
+
+<section id="screen-lib" class="screen active">
+  <header class="lib-head">
+    <div class="brand"><span class="brand-icon">🪚</span><h1>Carpenter3D</h1></div>
+    <button class="icon-btn" id="lib-search-btn">
+      <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg>
+    </button>
+  </header>
+  <div class="lib-actions-row"><input id="lib-search" class="lib-search hidden" placeholder="ابحث في المنتجات..." /></div>
+  <div class="lib-cats">
+    <button class="lib-cat active" data-cat="all">الكل</button>
+    <button class="lib-cat" data-cat="خزائن">خزائن</button>
+    <button class="lib-cat" data-cat="مطابخ">مطابخ</button>
+    <button class="lib-cat" data-cat="طاولات">طاولات</button>
+    <button class="lib-cat" data-cat="أبواب">أبواب</button>
+  </div>
+  <h3 class="lib-recent">منتجاتي</h3>
+  <div id="lib-grid" class="lib-grid"></div>
+  <div class="lib-bottom-bar">
+    <button class="fab-add" id="fab-new">
+      <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/></svg>
+      منتج جديد
+    </button>
+  </div>
+</section>
+
+<section id="screen-editor" class="screen">
+  <canvas id="canvas"></canvas>
+
+  <header id="topbar">
+    <button class="icon-btn" id="btn-home">
+      <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M12 3 2 12h3v8h5v-5h4v5h5v-8h3z"/></svg>
+    </button>
+    <div class="project-title">
+      <span id="project-name">منتج جديد</span>
+      <button class="edit-name" id="btn-edit-name">
+        <svg viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M4 20h4l10-10-4-4L4 16v4zm14.7-14.7 1-1a1 1 0 0 0 0-1.4l-2.6-2.6a1 1 0 0 0-1.4 0l-1 1 4 4z"/></svg>
+      </button>
+    </div>
+    <span class="unit-badge">cm</span>
+    <button class="icon-btn" id="btn-menu">
+      <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </button>
+  </header>
+
+  <aside id="left-tools">
+    <button class="icon-btn" id="btn-undo">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M12 5V1L7 6l5 5V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z"/></svg>
+    </button>
+    <button class="icon-btn" id="btn-redo">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M12 5V1l5 5-5 5V7a6 6 0 1 0 6 6h2a8 8 0 1 1-8-8z"/></svg>
+    </button>
+    <button class="icon-btn" id="btn-shot">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M9 3 7.2 5H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.2L15 3zm3 5a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg>
+    </button>
+    <button class="icon-btn" id="btn-center">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M12 2v3a7 7 0 0 1 7 7h3a10 10 0 0 0-10-10zm0 20v-3a7 7 0 0 1-7-7H2a10 10 0 0 0 10 10zm0-13a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg>
+    </button>
+  </aside>
+
+  <div id="bottom-left">
+    <button class="icon-btn round" id="btn-grid-toggle">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm10 0h8v8h-8z"/></svg>
+    </button>
+    <button class="icon-btn round" id="btn-list">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M3 5h4v4H3zm6 0h12v4H9zM3 10h4v4H3zm6 0h12v4H9zM3 15h4v4H3zm6 0h12v4H9z"/></svg>
+    </button>
+    <button class="icon-btn round primary" id="btn-add-fab">
+      <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/></svg>
+    </button>
+  </div>
+
+  <div id="empty-state">
+    <p>ابدأ بإضافة قطعة أولى</p>
+    <button class="big-add" id="btn-add-empty">+ إضافة قطعة</button>
+  </div>
+
+  <div id="obj-pill" class="hidden">
+    <span id="obj-name">—</span>
+    <button class="dots" id="obj-menu-btn">⋮</button>
+  </div>
+
+  <div id="part-tools" class="hidden">
+    <button class="ptool active" data-tool="translate" title="تحريك">
+      <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="m12 2 4 4h-3v4h4V7l4 4-4 4v-3h-4v4h3l-4 4-4-4h3v-4H7v3l-4-4 4-4v3h4V6H8z"/></svg>
+    </button>
+    <button class="ptool" data-tool="scale" title="حجم">
+      <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M4 4h7v2H6v5H4zm9 0h7v7h-2V6h-5zM4 13h2v5h5v2H4zm14 0h2v7h-7v-2h5z"/></svg>
+    </button>
+    <button class="ptool" data-tool="rotate" title="تدوير">
+      <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M12 6V3L8 7l4 4V8a4 4 0 1 1-4 4H6a6 6 0 1 0 6-6z"/></svg>
+    </button>
+    <button class="ptool" id="btn-material" title="مواد">
+      <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M18 4V2H6v2H2v6a4 4 0 0 0 4 4h4v3H7v5h10v-5h-3v-3h4a4 4 0 0 0 4-4V4zM6 10H4V6h2zm14 0h-2V6h2z"/></svg>
+    </button>
+    <button class="ptool" id="btn-settings" title="خصائص">
+      <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M3 17v2h6v-2zm0-6v2h10v-2zm0-6v2h14V5zm10 14v-2h8v-2h-8v-2h-2v6zm6-8v-2h4V9h-4V7h-2v6zM7 9V7H3v2zm0 4V11H5v2z"/></svg>
+    </button>
+    <button class="ptool" id="btn-door" title="باب/درج">
+      <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M8 3h9a1 1 0 0 1 1 1v17h-2V5H9v17H8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm9 9a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z"/></svg>
+    </button>
+    <button class="ptool" id="btn-dup" title="نسخ">
+      <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z"/></svg>
+    </button>
+    <button class="ptool" id="btn-del-part" title="حذف">
+      <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6zM19 4h-3.5l-1-1h-5l-1 1H5v2h14z"/></svg>
+    </button>
+  </div>
+
+  <div id="inputs-row" class="hidden">
+    <div class="ig" data-mode="translate">
+      <div class="ig-field"><span class="dot red"></span><input id="in-x" type="number" step="1"></div>
+      <div class="ig-field"><span class="dot green"></span><input id="in-y" type="number" step="1"></div>
+      <div class="ig-field"><span class="dot blue"></span><input id="in-z" type="number" step="1"></div>
+      <button class="ig-btn" id="btn-measure" title="قياس">
+        <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M2 8h20v8H2zm2 2v4h2v-2h2v2h2v-2h2v2h2v-2h2v2h2v-2h2v2h2v-4z"/></svg>
+        قياس
+      </button>
+    </div>
+    <div class="ig hidden" data-mode="scale">
+      <div class="ig-field"><span class="dot red"></span><input id="in-w" type="number" step="1"></div>
+      <div class="ig-field"><span class="dot green"></span><input id="in-h" type="number" step="1"></div>
+      <div class="ig-field"><span class="dot blue"></span><input id="in-d" type="number" step="1"></div>
+      <button class="ig-btn icon-only" id="btn-link" title="ربط">
+        <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M3.9 12a3 3 0 0 1 3-3H9V7H6.9a5 5 0 0 0 0 10H9v-2H6.9a3 3 0 0 1-3-3zm4.1 1h8v-2H8zm7-6h-2.1v2H15a3 3 0 0 1 0 6h-2.1v2H15a5 5 0 0 0 0-10z"/></svg>
+      </button>
+    </div>
+    <div class="ig hidden" data-mode="rotate">
+      <div class="ig-field"><span class="dot red"></span><input id="in-rx" type="number" step="5"></div>
+      <div class="ig-field"><span class="dot green"></span><input id="in-ry" type="number" step="5"></div>
+      <div class="ig-field"><span class="dot blue"></span><input id="in-rz" type="number" step="5"></div>
+      <button class="ig-btn icon-only" id="btn-reset-rot" title="تصفير">
+        <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M12 5V2L7 7l5 5V9a5 5 0 1 1-5 5H5a7 7 0 1 0 7-9z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div id="shape-settings" class="hidden">
+    <div class="ss-head">
+      <span id="ss-title">خصائص القطعة</span>
+      <button class="ss-close" id="ss-close">✕</button>
+    </div>
+    <div class="ss-body" id="ss-body"></div>
+  </div>
+
+  <div id="measure-label" class="hidden"></div>
+
+  <!-- ═══ لوحة الباب / الدرج ═══ -->
+  <div id="door-panel" class="hidden">
+    <div class="dp-head">
+      <span id="dp-title">باب / درج</span>
+      <button class="dp-close" id="dp-close">✕</button>
+    </div>
+    <div class="dp-body">
+      <h4>نوع القطعة</h4>
+      <div class="dp-row">
+        <button class="dp-type" data-role="door">🚪 باب</button>
+        <button class="dp-type" data-role="drawer">🗄️ درج</button>
+        <button class="dp-type active" data-role="none">⬛ ثابت</button>
+      </div>
+
+      <div id="dp-motion-fields">
+        <h4>الحركة</h4>
+        <div class="dp-row">
+          <label class="dp-field">
+            <span>المحور</span>
+            <select id="dp-axis">
+              <option value="x">X</option>
+              <option value="y" selected>Y</option>
+              <option value="z">Z</option>
+            </select>
+          </label>
+          <label class="dp-field">
+            <span>الاتجاه</span>
+            <select id="dp-dir">
+              <option value="1">+</option>
+              <option value="-1">-</option>
+            </select>
+          </label>
+          <label class="dp-field">
+            <span id="dp-range-label">المدى</span>
+            <input id="dp-range" type="number" min="1" max="180" step="5" value="90">
+          </label>
+        </div>
+        <div class="dp-row">
+          <label class="dp-field">
+            <span>السرعة</span>
+            <input id="dp-speed" type="range" min="1" max="20" value="8">
+          </label>
+        </div>
+
+        <div id="dp-pivot-section">
+          <h4>نقطة الدوران (Pivot)</h4>
+          <div class="dp-row">
+            <label class="dp-field"><span>X</span><input id="dp-px" type="number" step="1"></label>
+            <label class="dp-field"><span>Y</span><input id="dp-py" type="number" step="1"></label>
+            <label class="dp-field"><span>Z</span><input id="dp-pz" type="number" step="1"></label>
+          </div>
+          <div class="dp-row">
+            <button class="dp-pick" data-edge="left">الحافة اليسرى</button>
+            <button class="dp-pick" data-edge="right">الحافة اليمنى</button>
+          </div>
+          <div class="dp-row">
+            <button class="dp-pick" data-edge="top">أعلى</button>
+            <button class="dp-pick" data-edge="bottom">أسفل</button>
+          </div>
+        </div>
+
+        <div class="dp-row">
+          <label class="dp-field" style="flex:1">
+            <span>التسمية</span>
+            <input id="dp-label" type="text" placeholder="الباب الأيسر">
+          </label>
+        </div>
+
+        <div class="dp-row" style="margin-top:14px">
+          <button class="dp-action primary" id="dp-test-open">▶ اختبار الفتح</button>
+          <button class="dp-action" id="dp-test-close">■ الغلق</button>
+        </div>
+      </div>
+
+      <div class="dp-row" style="margin-top:14px">
+        <button class="dp-action danger" id="dp-remove">حذف الحركة</button>
+      </div>
+    </div>
+  </div>
+
+
+  <div id="ctx-menu" class="hidden">
+    <button data-act="rename">إعادة تسمية</button>
+    <button data-act="del" class="danger">حذف</button>
+  </div>
+  <div id="top-menu" class="hidden">
+    <button data-act="save">حفظ</button>
+    <button data-act="publish">تحديث نسخة الزبائن</button>
+    <button data-act="export">تصدير JSON</button>
+    <button data-act="del-model" class="danger">حذف المنتج</button>
+  </div>
+
+  <div id="shape-modal" class="modal hidden">
+    <div class="shape-modal-box">
+      <aside class="shape-side">
+        <button class="sh-cat active" data-cat="basic" title="أساسي">
+          <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"><path d="M8 13l12-7 12 7v14l-12 7-12-7z"/><path d="M8 13l12 7 12-7M20 20v14"/></svg>
+        </button>
+        <button class="sh-cat" data-cat="profile" title="ملفات">
+          <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"><path d="M20 8L32 30H8z"/></svg>
+        </button>
+        <button class="sh-cat" data-cat="detail" title="تفاصيل">
+          <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 32V17a5 5 0 015-5h17"/><path d="M8 32V17a9 9 0 019-9h17"/></svg>
+        </button>
+      </aside>
+      <main class="shape-main">
+        <button class="shape-close" data-close="shape-modal">✕</button>
+        <div class="shape-grid" id="shape-grid"></div>
+      </main>
+    </div>
+  </div>
+
+  <div id="mat-sheet" class="sheet hidden">
+    <div class="sheet-handle"></div>
+    <div class="sheet-tabs">
+      <button class="sheet-cat active" data-cat="wood">🪵</button>
+      <button class="sheet-cat" data-cat="color">🎨</button>
+      <button class="sheet-cat" data-cat="metal">⚙️</button>
+      <button class="sheet-cat" data-cat="textile">🧵</button>
+    </div>
+    <div class="sheet-body"><div id="mat-grid" class="mat-grid"></div></div>
+  </div>
+
+  <div id="list-modal" class="modal hidden">
+    <div class="modal-box small">
+      <header class="modal-head">
+        <h2>العناصر</h2>
+        <button class="close-btn" data-close="list-modal">✕</button>
+      </header>
+      <div id="parts-list" class="parts-list"></div>
+    </div>
+  </div>
+
+  <!-- ═══ نافذة إعدادات المحرر ═══ -->
+  <div id="settings-overlay" class="settings-overlay"></div>
+  <div id="settings-sheet" class="settings-sheet">
+    <div class="ss-sheet-head">
+      <span class="ss-sheet-grip"></span>
+      <button class="ss-sheet-chevron" id="settings-close" aria-label="إغلاق">
+        <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M7.4 8.6 12 13.2l4.6-4.6L18 10l-6 6-6-6z"/></svg>
+      </button>
+    </div>
+    <div class="ss-sheet-body">
+
+      <div class="ss-sheet-grid">
+        <button class="ss-tile" id="tile-add">
+          <div class="ss-tile-icon">
+            <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M15 12h10l7 6-7 6H15l-7-6z"/><path d="M30 8h6M33 5v6"/></svg>
+          </div>
+          <span>إضافة شكل</span>
+        </button>
+        <button class="ss-tile" id="tile-multi">
+          <div class="ss-tile-icon">
+            <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="6" y="10" width="20" height="18" rx="2" stroke-dasharray="3 3"/><path d="M24 22l7 7-2 5-7-7z" fill="currentColor" stroke="none"/></svg>
+          </div>
+          <span>تحديد متعدد</span>
+        </button>
+        <button class="ss-tile" id="tile-focus">
+          <div class="ss-tile-icon">
+            <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="20" cy="20" r="6"/><path d="M20 6v6M20 28v6M6 20h6M28 20h6"/></svg>
+          </div>
+          <span>تركيز</span>
+        </button>
+        <button class="ss-tile" id="tile-hierarchy">
+          <div class="ss-tile-icon">
+            <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 10h20M14 20h20M14 30h20"/><circle cx="7" cy="10" r="2" fill="currentColor"/><circle cx="7" cy="20" r="2" fill="currentColor"/><circle cx="7" cy="30" r="2" fill="currentColor"/></svg>
+          </div>
+          <span>الهيكل</span>
+        </button>
+      </div>
+
+      <h3 class="ss-section-title">البيئة</h3>
+
+      <div class="ss-sheet-grid">
+        <button class="ss-tile ss-toggle on" id="tile-snap">
+          <div class="ss-tile-icon">
+            <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="8" y="14" width="24" height="12" rx="3"/><rect x="12" y="18" width="6" height="4" rx="1" fill="currentColor"/><path d="M20 20h6M26 20h2" stroke-dasharray="2 2"/></svg>
+            <span class="ss-toggle-pill"></span>
+          </div>
+          <span>محاذاة</span>
+        </button>
+        <button class="ss-tile ss-toggle on" id="tile-center">
+          <div class="ss-tile-icon">
+            <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="10" y="14" width="20" height="12" rx="3"/><rect x="14" y="18" width="6" height="4" rx="1" fill="currentColor"/><path d="M6 20h2M32 20h2"/></svg>
+            <span class="ss-toggle-pill"></span>
+          </div>
+          <span>تمركز تلقائي</span>
+        </button>
+        <button class="ss-tile ss-number" id="tile-round">
+          <div class="ss-tile-icon">
+            <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="20" cy="20" r="12" stroke-dasharray="3 3"/><text x="20" y="25" text-anchor="middle" font-size="13" fill="currentColor" font-weight="700" stroke="none" font-family="system-ui">1</text></svg>
+          </div>
+          <span>تدوير دائري</span>
+        </button>
+        <button class="ss-tile ss-toggle" id="tile-dims">
+          <div class="ss-tile-icon">
+            <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M10 12l10-5 10 5v16l-10 5-10-5z"/><path d="M10 12l10 5 10-5M20 17v16"/></svg>
+            <span class="ss-toggle-pill"></span>
+          </div>
+          <span>عرض الأبعاد</span>
+        </button>
+        <button class="ss-tile" id="tile-share">
+          <div class="ss-tile-icon green">
+            <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="20" r="3.2"/><circle cx="28" cy="12" r="3.2"/><circle cx="28" cy="28" r="3.2"/><path d="M14.8 18.5l10.4-5M14.8 21.5l10.4 5"/></svg>
+          </div>
+          <span>مشاركة</span>
+        </button>
+        <button class="ss-tile" id="tile-export">
+          <div class="ss-tile-icon gold">
+            <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M20 6l12 6v16l-12 6L8 28V12z"/><path d="M20 20V6M20 20l12-6M20 20L8 14"/></svg>
+          </div>
+          <span>تصدير (3D)</span>
+        </button>
+      </div>
+
+      <div class="ss-divider"></div>
+
+      <div class="ss-sheet-actions">
+        <button class="ss-action-btn primary" id="ss-save">حفظ</button>
+        <button class="ss-action-btn" id="ss-publish">نشر</button>
+        <button class="ss-action-btn danger" id="ss-del">حذف المنتج</button>
+      </div>
+
+    </div>
+  </div>
+
+</section>
+
+<script id="error-catcher">
+window.addEventListener('error', function(e) {
+  var box = document.createElement('div');
+  box.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#c62828;color:#fff;padding:10px 14px;z-index:99999;font-family:monospace;font-size:11px;direction:ltr;text-align:left;line-height:1.5;word-break:break-all;max-height:40vh;overflow:auto;';
+  box.innerHTML = '<b>⚠ ERROR</b><br>' + (e.message || '?') + '<br>' + ((e.filename||'').split('/').pop()) + ':' + (e.lineno||'?') + '<br><small>(tap to close)</small>';
+  box.onclick = function(){ box.remove(); };
+  document.body.appendChild(box);
+});
+window.addEventListener('unhandledrejection', function(e) {
+  var box = document.createElement('div');
+  box.style.cssText = 'position:fixed;top:50px;left:0;right:0;background:#e65100;color:#fff;padding:10px 14px;z-index:99999;font-family:monospace;font-size:11px;direction:ltr;text-align:left;word-break:break-all;';
+  box.textContent = '⚠ PROMISE: ' + (e.reason && e.reason.message ? e.reason.message : String(e.reason || ''));
+  box.onclick = function(){ box.remove(); };
+  document.body.appendChild(box);
+});
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(e => console.warn('SW fail', e));
+  });
+}
+</script>
+</body>
+</html>
