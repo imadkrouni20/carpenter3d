@@ -30,11 +30,11 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Install Capacitor 6 (stable, Java 17+)
+      - name: Install Capacitor 6
         run: |
           npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 cross-env --save
 
-      - name: Build web (for Capacitor)
+      - name: Build web
         run: npm run build:cap
 
       - name: Add Android platform
@@ -46,14 +46,12 @@ jobs:
       - name: Configure Android build
         run: |
           cd android
-          sed -i 's/versionCode 1/versionCode 1/' app/build.gradle
           sed -i 's/versionName "1.0"/versionName "1.0.0"/' app/build.gradle
           sed -i 's/<string name="app_name">.*<\/string>/<string name="app_name">Carpenter3D<\/string>/' app/src/main/res/values/strings.xml
-          sed -i 's/com.getcapacitor.app/com.imadkrouni.carpenter3d/g' app/build.gradle 2>/dev/null || true
-          sed -i 's/namespace ".*"/namespace "com.imadkrouni.carpenter3d"/' app/build.gradle 2>/dev/null || true
-          sed -i 's/applicationId ".*"/applicationId "com.imadkrouni.carpenter3d"/' app/build.gradle 2>/dev/null || true
-          # زيادة ذاكرة Gradle
           echo "org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m" >> gradle.properties
+
+      - name: Apply fullscreen mode
+        run: bash android-config/fullscreen.sh
 
       - name: Build Debug APK
         run: |
@@ -68,14 +66,3 @@ jobs:
           name: Carpenter3D-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
-
-      - name: Upload failure logs
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-logs
-          path: |
-            android/app/build/reports/
-            android/build/reports/
-          retention-days: 7
-          if-no-files-found: ignore
