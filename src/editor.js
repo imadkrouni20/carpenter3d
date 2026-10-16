@@ -154,6 +154,28 @@ $('#btn-home').onclick = async () => {
 };
 
 // ================= بناء المشهد =================
+// ═══════════════════════════════════════════════════════════
+// إنشاء كائن Interaction جديد على state.root الحالي
+// ═══════════════════════════════════════════════════════════
+let _interactionUpdaterAdded = false;
+
+function refreshInteraction() {
+  if (state.interaction) {
+    try { state.interaction.detach(); } catch (e) {}
+  }
+  if (!state.root) { state.interaction = null; return; }
+  state.interaction = new Interaction(S.camera, canvas, state.root);
+  state.interaction.enabled = false;
+  if (!_interactionUpdaterAdded) {
+    S.addUpdater(() => {
+      if (state.interaction) {
+        try { state.interaction.apply(); } catch (e) {}
+      }
+    });
+    _interactionUpdaterAdded = true;
+  }
+}
+
 function buildScene() {
   if (state.root) { S.scene.remove(state.root); state.root = null; }
   state.root = loadModel(state.json);
@@ -166,6 +188,7 @@ function buildScene() {
   if (state.json.parts.length) S.fitToObject(state.root);
   else S.controls.target.set(0, 50, 0);
   updateUndoRedo();
+  refreshInteraction();
 }
 function rebuildFromJson() {
   if (state.root) S.scene.remove(state.root);
@@ -186,6 +209,7 @@ function rebuildFromJson() {
     tc.detach();
   }
   updateUIState();
+  refreshInteraction();
 }
 function updateUIState() {
   const hasParts = state.json && state.json.parts.length > 0;
