@@ -1,0 +1,13 @@
+{
+  "appId": "com.imadkrouni.carpenter3d",
+  "appName": "Carpenter3D",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "android": {
+    "allowMixedContent": true,
+    "webContentsDebuggingEnabled": false
+  },
+  "server": {
+    "androidScheme": "https"
+  }
+}

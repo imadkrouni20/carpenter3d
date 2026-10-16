@@ -5,6 +5,7 @@ import { loadModel, emptyModel, makePart, newPartId, DEFAULT_MATERIAL_ID } from 
 import { MATERIALS, listByCategory } from './shared/materials.js';
 import { listShapes, buildGeometry, shapeParams, SHAPES as SHAPES_MAP } from './shared/shapes.js';
 import * as DB from './shared/db.js';
+import { Interaction } from './shared/interaction.js';
 
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => [...document.querySelectorAll(s)];
@@ -170,11 +171,22 @@ function rebuildFromJson() {
   if (state.root) S.scene.remove(state.root);
   state.root = loadModel(state.json);
   S.scene.add(state.root);
-  if (state.selectedId && state.root.userData.parts.get(state.selectedId)) attachToPart(state.selectedId);
-  else { state.selectedId = null; tc.detach(); }
+
+  // ⚠️ أهم سطر: أعِد بناء interaction على الجذر الجديد
+  if (state.interaction) {
+    try { state.interaction.detach(); } catch {}
+  }
+  state.interaction = new Interaction(S.camera, canvas, state.root);
+  state.interaction.enabled = false;
+
+  if (state.selectedId && state.root.userData.parts.get(state.selectedId)) {
+    attachToPart(state.selectedId);
+  } else {
+    state.selectedId = null;
+    tc.detach();
+  }
   updateUIState();
 }
-
 function updateUIState() {
   const hasParts = state.json && state.json.parts.length > 0;
   $('#empty-state').classList.toggle('hidden', hasParts);
@@ -2334,3 +2346,299 @@ if (_tileFocus) {
     setTimeout(() => smartFocus(500), 150);
   };
 }
+
+// ═══════════════════════════════════════════════════════════
+// نظام الأبواب والأدراج
+// ═══════════════════════════════════════════════════════════
+
+// ربط زر 🚪
+const _doorBtn = document.getElementById('btn-door');
+if (_doorBtn) {
+  _doorBtn.onclick = () => {
+    if (!state.selectedId) { toast('اختر قطعة أولاً'); return; }
+    openDoorPanel();
+  };
+}
+
+function openDoorPanel() {
+  if (!state.selectedId) return;
+  closeSettings();
+  const panel = document.getElementById('door-panel');
+  panel.classList.remove('hidden');
+  syncDoorPanel();
+}
+
+function closeDoorPanel() {
+  document.getElementById('door-panel')?.classList.add('hidden');
+}
+
+document.getElementById('dp-close')?.addEventListener('click', closeDoorPanel);
+
+// مزامنة الحقول مع القطعة المحددة
+function syncDoorPanel() {
+  const d = state.root.userData.parts.get(state.selectedId);
+  if (!d) return;
+  const p = d.def;
+  const role = p.role || 'none';
+  const motion = p.motion || {};
+
+  // الأزرار الثلاثة
+  document.querySelectorAll('.dp-type').forEach(b => {
+    b.classList.toggle('active', b.dataset.role === role);
+  });
+
+  const fieldsWrap = document.getElementById('dp-motion-fields');
+  const pivotSec = document.getElementById('dp-pivot-section');
+
+  if (role === 'none') {
+    fieldsWrap.classList.add('hidden');
+    return;
+  }
+  fieldsWrap.classList.remove('hidden');
+
+  const isSlide = (motion.type === 'slide');
+  pivotSec.classList.toggle('hidden', isSlide);
+
+  document.getElementById('dp-axis').value = motion.axis || (isSlide ? 'z' : 'y');
+  document.getElementById('dp-dir').value = String(motion.direction || 1);
+  document.getElementById('dp-range').value = motion.range ?? (isSlide ? 45 : 90);
+  document.getElementById('dp-range-label').textContent = isSlide ? 'المدى (سم)' : 'المدى (درجة)';
+  document.getElementById('dp-speed').value = motion.speed ?? 8;
+  document.getElementById('dp-label').value = motion.label || '';
+
+  const pv = motion.pivot || p.pos || [0, 0, 0];
+  document.getElementById('dp-px').value = pv[0].toFixed(1);
+  document.getElementById('dp-py').value = pv[1].toFixed(1);
+  document.getElementById('dp-pz').value = pv[2].toFixed(1);
+}
+
+// تغيير النوع
+document.querySelectorAll('.dp-type').forEach(btn => {
+  btn.onclick = () => {
+    if (!state.selectedId) return;
+    const role = btn.dataset.role;
+    snapshot();
+    const d = state.root.userData.parts.get(state.selectedId);
+    const p = d.def;
+
+    if (role === 'none') {
+      delete p.role;
+      delete p.motion;
+    } else if (role === 'door') {
+      p.role = 'door';
+      p.motion = {
+        type: 'rotate',
+        axis: p.motion?.axis || 'y',
+        direction: p.motion?.direction ?? 1,
+        range: p.motion?.range ?? 90,
+        speed: p.motion?.speed ?? 8,
+        pivot: p.motion?.pivot || [p.pos[0], p.pos[1], p.pos[2]],
+        label: p.motion?.label || 'باب'
+      };
+    } else if (role === 'drawer') {
+      p.role = 'drawer';
+      p.motion = {
+        type: 'slide',
+        axis: p.motion?.axis || 'z',
+        direction: p.motion?.direction ?? 1,
+        range: p.motion?.range ?? 45,
+        speed: p.motion?.speed ?? 8,
+        label: p.motion?.label || 'درج'
+      };
+    }
+
+    rebuildFromJson();
+    attachToPart(state.selectedId);
+    syncDoorPanel();
+    toast('تم التحديث');
+  };
+});
+
+// حقول الحركة
+['dp-axis', 'dp-dir', 'dp-range', 'dp-speed', 'dp-label'].forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.oninput = () => {
+    if (!state.selectedId) return;
+    const d = state.root.userData.parts.get(state.selectedId);
+    if (!d || !d.def.motion) return;
+    const m = d.def.motion;
+    if (id === 'dp-axis') m.axis = el.value;
+    if (id === 'dp-dir') m.direction = parseInt(el.value);
+    if (id === 'dp-range') m.range = parseFloat(el.value) || (m.type === 'slide' ? 45 : 90);
+    if (id === 'dp-speed') m.speed = parseInt(el.value) || 8;
+    if (id === 'dp-label') m.label = el.value;
+
+    // حدّث الـinteraction
+    if (state.interaction) state.interaction.rebuild();
+  };
+  el.addEventListener('focus', () => { state._dragStartSnapshot = JSON.stringify(state.json); });
+  el.addEventListener('blur', () => {
+    if (state._dragStartSnapshot && state._dragStartSnapshot !== JSON.stringify(state.json)) {
+      state.history.push(state._dragStartSnapshot);
+      if (state.history.length > 60) state.history.shift();
+      state.future = [];
+      updateUndoRedo();
+    }
+    state._dragStartSnapshot = null;
+  });
+});
+
+// حقول pivot
+['dp-px', 'dp-py', 'dp-pz'].forEach((id, i) => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.oninput = () => {
+    if (!state.selectedId) return;
+    const d = state.root.userData.parts.get(state.selectedId);
+    if (!d || !d.def.motion || d.def.motion.type !== 'rotate') return;
+    const m = d.def.motion;
+    m.pivot = m.pivot || [0, 0, 0];
+    m.pivot[i] = parseFloat(el.value) || 0;
+
+    // أعِد ترتيب المجموعة
+    const p = d.def;
+    d.group.position.set(m.pivot[0], m.pivot[1], m.pivot[2]);
+    d.mesh.position.set(
+      p.pos[0] - m.pivot[0],
+      p.pos[1] - m.pivot[1],
+      p.pos[2] - m.pivot[2]
+    );
+    d.group.userData.basePos = d.group.position.clone();
+    d.group.updateMatrixWorld(true);
+    if (state.interaction) state.interaction.rebuild();
+  };
+});
+
+// التقاط pivot من الحافة
+document.querySelectorAll('.dp-pick').forEach(btn => {
+  btn.onclick = () => {
+    if (!state.selectedId) return;
+    const d = state.root.userData.parts.get(state.selectedId);
+    if (!d || !d.def.motion || d.def.motion.type !== 'rotate') {
+      toast('التقاط Pivot للأبواب فقط');
+      return;
+    }
+    const p = d.def;
+    const edge = btn.dataset.edge;
+    const [w, h, dd] = p.size;
+    const px = p.pos[0], py = p.pos[1], pz = p.pos[2];
+
+    let pivot;
+    if (edge === 'left')       pivot = [px - w / 2, py, pz];
+    else if (edge === 'right') pivot = [px + w / 2, py, pz];
+    else if (edge === 'top')   pivot = [px, py + h / 2, pz];
+    else if (edge === 'bottom') pivot = [px, py - h / 2, pz];
+    else pivot = [px, py, pz];
+
+    snapshot();
+    p.motion.pivot = pivot;
+    rebuildFromJson();
+    attachToPart(state.selectedId);
+    syncDoorPanel();
+    toast('تم التقاط Pivot: ' + edge);
+  };
+});
+
+// اختبار الفتح / الغلق
+document.getElementById('dp-test-open')?.addEventListener('click', () => {
+  if (!state.interaction) return;
+  state.interaction.toggle(state.selectedId, true);
+});
+document.getElementById('dp-test-close')?.addEventListener('click', () => {
+  if (!state.interaction) return;
+  state.interaction.toggle(state.selectedId, false);
+});
+
+// حذف الحركة
+document.getElementById('dp-remove')?.addEventListener('click', () => {
+  if (!state.selectedId) return;
+  const d = state.root.userData.parts.get(state.selectedId);
+  if (!d) return;
+  if (!d.def.role && !d.def.motion) { toast('لا يوجد ما يُحذف'); return; }
+  snapshot();
+  delete d.def.role;
+  delete d.def.motion;
+  rebuildFromJson();
+  attachToPart(state.selectedId);
+  syncDoorPanel();
+  toast('تم حذف الحركة');
+});
+
+// أغلق اللوحة عند إلغاء التحديد
+const _origDeselectDoor = deselectAll;
+deselectAll = function() {
+  _origDeselectDoor.apply(this, arguments);
+  closeDoorPanel();
+};
+
+// أغلق اللوحة عند فتح لوحة أخرى
+['btn-material', 'btn-settings'].forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const _old = el.onclick;
+  el.onclick = function(e) {
+    closeDoorPanel();
+    if (_old) _old.call(this, e);
+  };
+});
+
+// زر الإضافة الجديد لا يغلق اللوحة
+console.log('✔ نظام الأبواب والأدراج جاهز');
+
+// ═══════════════════════════════════════════════════════════
+// [إصلاح] تشغيل الباب + تشخيص كامل
+// ═══════════════════════════════════════════════════════════
+
+const _dpOpenFix = document.getElementById('dp-test-open');
+const _dpCloseFix = document.getElementById('dp-test-close');
+
+if (_dpOpenFix) {
+  _dpOpenFix.onclick = (e) => {
+    e.preventDefault();
+    const sid = state.selectedId;
+    const it = state.interaction;
+    const d = sid && state.root ? state.root.userData.parts.get(sid) : null;
+
+    console.log('════ [DOOR-OPEN] ════');
+    console.log('selectedId:', sid);
+    console.log('interaction?:', !!it);
+    console.log('movable.length:', it?.movable?.length);
+    console.log('movable ids:', it?.movable?.map(x => x.id));
+    console.log('selected part.role:', d?.def?.role);
+    console.log('selected part.motion:', JSON.stringify(d?.def?.motion));
+
+    if (!it) { toast('لا يوجد نظام حركة'); return; }
+    if (!sid) { toast('لم يتم تحديد شيء'); return; }
+
+    const m = it.movable.find(x => x.id === sid);
+    if (!m) {
+      toast('القطعة ليست باباً — اختر "باب" من الأعلى');
+      return;
+    }
+    it.toggle(sid, true);
+    console.log('after toggle: t=' + m.t + ' target=' + m.target);
+    console.log('════════════════════');
+  };
+}
+
+if (_dpCloseFix) {
+  _dpCloseFix.onclick = (e) => {
+    e.preventDefault();
+    if (!state.interaction || !state.selectedId) return;
+    state.interaction.toggle(state.selectedId, false);
+    console.log('[DOOR-CLOSE] requested');
+  };
+}
+
+// ضمان وجود tick للحركة
+if (typeof S !== 'undefined' && S.addUpdater) {
+  S.addUpdater(() => {
+    if (state.interaction) {
+      try { state.interaction.apply(); } catch (e) {}
+    }
+  });
+  console.log('[DOOR] global tick added');
+}
+
+console.log('✔ إصلاح الباب جاهز');

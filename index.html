@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
 <title>Carpenter3D</title>
 <link rel="stylesheet" href="/src/styles.css" />
+  <meta name="description" content="محرر ثلاثي الأبعاد لتصميم منتجات النجارة والأثاث" />
+    <meta name="description" content="محرر ثلاثي الأبعاد لتصميم منتجات النجارة والأثاث" />
+  <meta name="theme-color" content="#2b303b" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png" />
+  <link rel="apple-touch-icon" href="./icon-192.png" />
 </head>
 <body>
 
@@ -105,6 +111,9 @@
     <button class="ptool" id="btn-settings" title="خصائص">
       <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M3 17v2h6v-2zm0-6v2h10v-2zm0-6v2h14V5zm10 14v-2h8v-2h-8v-2h-2v6zm6-8v-2h4V9h-4V7h-2v6zM7 9V7H3v2zm0 4V11H5v2z"/></svg>
     </button>
+    <button class="ptool" id="btn-door" title="باب/درج">
+      <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M8 3h9a1 1 0 0 1 1 1v17h-2V5H9v17H8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm9 9a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z"/></svg>
+    </button>
     <button class="ptool" id="btn-dup" title="نسخ">
       <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z"/></svg>
     </button>
@@ -150,6 +159,87 @@
   </div>
 
   <div id="measure-label" class="hidden"></div>
+
+  <!-- ═══ لوحة الباب / الدرج ═══ -->
+  <div id="door-panel" class="hidden">
+    <div class="dp-head">
+      <span id="dp-title">باب / درج</span>
+      <button class="dp-close" id="dp-close">✕</button>
+    </div>
+    <div class="dp-body">
+      <h4>نوع القطعة</h4>
+      <div class="dp-row">
+        <button class="dp-type" data-role="door">🚪 باب</button>
+        <button class="dp-type" data-role="drawer">🗄️ درج</button>
+        <button class="dp-type active" data-role="none">⬛ ثابت</button>
+      </div>
+
+      <div id="dp-motion-fields">
+        <h4>الحركة</h4>
+        <div class="dp-row">
+          <label class="dp-field">
+            <span>المحور</span>
+            <select id="dp-axis">
+              <option value="x">X</option>
+              <option value="y" selected>Y</option>
+              <option value="z">Z</option>
+            </select>
+          </label>
+          <label class="dp-field">
+            <span>الاتجاه</span>
+            <select id="dp-dir">
+              <option value="1">+</option>
+              <option value="-1">-</option>
+            </select>
+          </label>
+          <label class="dp-field">
+            <span id="dp-range-label">المدى</span>
+            <input id="dp-range" type="number" min="1" max="180" step="5" value="90">
+          </label>
+        </div>
+        <div class="dp-row">
+          <label class="dp-field">
+            <span>السرعة</span>
+            <input id="dp-speed" type="range" min="1" max="20" value="8">
+          </label>
+        </div>
+
+        <div id="dp-pivot-section">
+          <h4>نقطة الدوران (Pivot)</h4>
+          <div class="dp-row">
+            <label class="dp-field"><span>X</span><input id="dp-px" type="number" step="1"></label>
+            <label class="dp-field"><span>Y</span><input id="dp-py" type="number" step="1"></label>
+            <label class="dp-field"><span>Z</span><input id="dp-pz" type="number" step="1"></label>
+          </div>
+          <div class="dp-row">
+            <button class="dp-pick" data-edge="left">الحافة اليسرى</button>
+            <button class="dp-pick" data-edge="right">الحافة اليمنى</button>
+          </div>
+          <div class="dp-row">
+            <button class="dp-pick" data-edge="top">أعلى</button>
+            <button class="dp-pick" data-edge="bottom">أسفل</button>
+          </div>
+        </div>
+
+        <div class="dp-row">
+          <label class="dp-field" style="flex:1">
+            <span>التسمية</span>
+            <input id="dp-label" type="text" placeholder="الباب الأيسر">
+          </label>
+        </div>
+
+        <div class="dp-row" style="margin-top:14px">
+          <button class="dp-action primary" id="dp-test-open">▶ اختبار الفتح</button>
+          <button class="dp-action" id="dp-test-close">■ الغلق</button>
+        </div>
+      </div>
+
+      <div class="dp-row" style="margin-top:14px">
+        <button class="dp-action danger" id="dp-remove">حذف الحركة</button>
+      </div>
+    </div>
+  </div>
+
 
   <div id="ctx-menu" class="hidden">
     <button data-act="rename">إعادة تسمية</button>
@@ -315,5 +405,6 @@ window.addEventListener('unhandledrejection', function(e) {
 });
 </script>
 <script type="module" src="/src/editor.js"></script>
+
 </body>
 </html>

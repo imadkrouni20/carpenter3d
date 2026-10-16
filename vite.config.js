@@ -1,10 +1,16 @@
 import { defineConfig } from 'vite';
 import { fileURLToPath, URL } from 'node:url';
+
+// Capacitor يحدد المسار عبر متغير بيئة
+const isCap = process.env.CAP_BUILD === '1';
+
 export default defineConfig({
-  base: './',
+  base: isCap ? './' : '/carpenter3d/',
   server: { host: '0.0.0.0', port: 5173 },
-  resolve: { alias: { 'three/examples/jsm': 'three/examples/jsm', 'three/addons': 'three/examples/jsm' } },
   build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    target: 'es2020',
     rollupOptions: {
       input: {
         main: fileURLToPath(new URL('./index.html', import.meta.url)),

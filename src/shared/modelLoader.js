@@ -3,7 +3,6 @@ import { buildMaterial } from './materials.js';
 import { buildGeometry, defaultSize, defaultOptions } from './shapes.js';
 
 const matCache = new Map();
-
 function legacyMat(def) {
   const key = `${def.color}|${def.roughness}|${def.metalness}`;
   if (matCache.has(key)) return matCache.get(key);
@@ -15,7 +14,6 @@ function legacyMat(def) {
   matCache.set(key, m);
   return m;
 }
-
 function resolveMaterial(def) {
   if (def && def.materialId) {
     const m = buildMaterial(def);
@@ -24,10 +22,17 @@ function resolveMaterial(def) {
   return legacyMat(def || {});
 }
 
+// إطار مرئي (خطوط) لتمييز الأبواب والأدراج
+function buildOutline(geo, color, thickness = 2) {
+  const edges = new THREE.EdgesGeometry(geo);
+  const line = new THREE.LineSegments(
+    edges,
+    new THREE.LineBasicMaterial({ color, linewidth: thickness, transparent: true, opacity: 0.85 })
+  );
+  return line;
+}
 
-// ═══════════════════════════════════════════════════════════
-// بناء هندسة CSG من بيانات محفوظة
-// ═══════════════════════════════════════════════════════════
+// بناء هندسة من CSG المحفوظ
 function buildCSGGeometry(csg) {
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(csg.positions, 3));
@@ -51,36 +56,49 @@ export function loadModel(json) {
     const shapeId = p.shape || p.type || 'box';
     const options = p.options || {};
     let geo;
-    if (shapeId === 'csg' && p.csg) {
-      geo = buildCSGGeometry(p.csg);
-    } else {
-      geo = buildGeometry(shapeId, size, options);
-    }
+    if (shapeId === 'csg' && p.csg) geo = buildCSGGeometry(p.csg);
+    else geo = buildGeometry(shapeId, size, options);
+
     const mat = resolveMaterial(p.material);
     const mesh = new THREE.Mesh(geo, mat);
     mesh.castShadow = true;
     mesh.receiveShadow = true;
     mesh.userData.partId = p.id;
-    mesh.userData.isMovable = !!p.axis;
+    mesh.userData.isMovable = !!(p.motion && p.motion.type);
+
+    // إطار مرئي للباب/الدرج
+    if (p.role === 'door' || p.role === 'drawer') {
+      const color = p.role === 'door' ? 0xff9c3d : 0x4ca6ff;
+      const outline = buildOutline(geo, color);
+      outline.userData.isHelper = true;
+      outline.userData.partId = p.id;
+      mesh.add(outline);
+    }
 
     const group = new THREE.Group();
     group.name = 'part_' + p.id;
 
-    if (p.axis && p.pivot) {
-      // القطع المتحركة (أبواب/أدراج): المحور عند pivot
-      group.position.set(p.pivot[0], p.pivot[1], p.pivot[2]);
-      mesh.position.set(p.pos[0]-p.pivot[0], p.pos[1]-p.pivot[1], p.pos[2]-p.pivot[2]);
+    // إن كان للقطعة motion.rotate → استخدم pivot
+    const motion = p.motion || {};
+    if (motion.type === 'rotate' && motion.pivot) {
+      group.position.set(motion.pivot[0], motion.pivot[1], motion.pivot[2]);
+      mesh.position.set(
+        (p.pos?.[0] ?? 0) - motion.pivot[0],
+        (p.pos?.[1] ?? 0) - motion.pivot[1],
+        (p.pos?.[2] ?? 0) - motion.pivot[2]
+      );
     } else {
-      // القطع العادية: gizmo في مركز العنصر
       group.position.set(p.pos?.[0] ?? 0, p.pos?.[1] ?? 0, p.pos?.[2] ?? 0);
       mesh.position.set(0, 0, 0);
     }
+
     if (p.rotation) {
-      group.rotation.set(p.rotation[0]||0, p.rotation[1]||0, p.rotation[2]||0);
+      group.rotation.set(p.rotation[0] || 0, p.rotation[1] || 0, p.rotation[2] || 0);
     }
     group.add(mesh);
     group.userData.partDef = p;
     group.userData.basePos = group.position.clone();
+    group.userData.baseRot = group.rotation.clone();
     root.add(group);
     partsMap.set(p.id, { group, mesh, def: p });
   }
@@ -91,9 +109,9 @@ export function loadModel(json) {
 export function emptyModel(id = 'model_' + Date.now()) {
   return {
     id, name: 'منتج جديد', category: 'عام',
-    dimensions: { w:100, h:100, d:50, unit:'cm' },
+    dimensions: { w: 100, h: 100, d: 50, unit: 'cm' },
     parts: [], price: 0, currency: 'MAD', tags: [], notes: '',
-    published: false, version: 1, createdAt: new Date().toISOString()
+    published: false, version: 2, createdAt: new Date().toISOString()
   };
 }
 
@@ -101,7 +119,6 @@ export function newPartId(shapeId = 'part') {
   return shapeId + '_' + Math.random().toString(36).slice(2, 6);
 }
 
-// ✅ اللون الافتراضي ثابت لكل قطعة جديدة
 export const DEFAULT_MATERIAL_ID = 'sapin';
 
 export function makePart(shapeId, materialId = DEFAULT_MATERIAL_ID) {
@@ -113,7 +130,7 @@ export function makePart(shapeId, materialId = DEFAULT_MATERIAL_ID) {
     type: shapeId,
     size,
     options,
-    pos: [0, size[1]/2, 0],
+    pos: [0, size[1] / 2, 0],
     rotation: [0, 0, 0],
     material: { materialId }
   };

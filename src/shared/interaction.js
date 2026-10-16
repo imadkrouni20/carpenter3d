@@ -12,9 +12,12 @@ export class Interaction {
     this.enabled = true;
 
     for (const [id, d] of root.userData.parts) {
-      if (d.def.axis) {
+      const motion = d.def.motion;
+      if (motion && motion.type) {
         this.movable.push({
-          id, def: d.def, group: d.group, base: d.group.position.clone(),
+          id, def: d.def, group: d.group, motion,
+          base: d.group.position.clone(),
+          baseRot: d.group.rotation.clone(),
           t: 0, target: 0, open: false
         });
       }
@@ -49,6 +52,8 @@ export class Interaction {
     const roots = [...this.root.children];
     const hits = this.raycaster.intersectObjects(roots, true);
     for (const h of hits) {
+      // تجاهل الإطارات المساعدة
+      if (h.object.userData?.isHelper) continue;
       let o = h.object;
       while (o && !o.userData.partId) o = o.parent;
       if (o && o.userData.isMovable) {
@@ -74,25 +79,43 @@ export class Interaction {
     return this.movable.some(m => m.open);
   }
 
+  // إعادة بناء القائمة إذا تغيّرت
+  rebuild() {
+    this.movable = [];
+    for (const [id, d] of this.root.userData.parts) {
+      const motion = d.def.motion;
+      if (motion && motion.type) {
+        this.movable.push({
+          id, def: d.def, group: d.group, motion,
+          base: d.group.position.clone(),
+          baseRot: d.group.rotation.clone(),
+          t: 0, target: 0, open: false
+        });
+      }
+    }
+  }
+
   apply() {
     for (const m of this.movable) {
-      const { def, group, base } = m;
+      const { motion, group, base, baseRot } = m;
+      const speed = (motion.speed ?? 8) / 100; // 1..30 → 0.01..0.30
       if (Math.abs(m.t - m.target) > 0.001) {
         const dir = Math.sign(m.target - m.t);
-        m.t = THREE.MathUtils.clamp(m.t + dir * 0.08, 0, 1);
+        m.t = THREE.MathUtils.clamp(m.t + dir * speed, 0, 1);
       }
-      const e = m.t * m.t * (3 - 2 * m.t);
-      const maxV = def.max ?? (def.motion === 'slide' ? 45 : 90);
-      const sign = def.direction === -1 ? -1 : 1;
+      const e = m.t * m.t * (3 - 2 * m.t); // easeInOutCubic
+      const maxV = motion.range ?? (motion.type === 'slide' ? 45 : 90);
+      const sign = motion.direction === -1 ? -1 : 1;
 
-      group.rotation.set(0, 0, 0);
+      group.rotation.set(baseRot.x, baseRot.y, baseRot.z);
       group.position.copy(base);
 
-      if (def.motion === 'slide') {
-        const axis = def.axis || 'z';
+      if (motion.type === 'slide') {
+        const axis = motion.axis || 'z';
         group.position[axis] = base[axis] + sign * maxV * e;
       } else {
-        group.rotation[def.axis || 'y'] = sign * (maxV * Math.PI / 180) * e;
+        const axis = motion.axis || 'y';
+        group.rotation[axis] = baseRot[axis] + sign * (maxV * Math.PI / 180) * e;
       }
     }
   }
