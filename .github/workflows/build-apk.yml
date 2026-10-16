@@ -15,24 +15,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js 22
         uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'npm'
 
-      - name: Setup Java 17
+      - name: Setup Java 21
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
 
       - name: Install dependencies
         run: npm install
 
-      - name: Install Capacitor
+      - name: Install Capacitor 6 (stable, Java 17+)
         run: |
-          npm install @capacitor/core@latest @capacitor/cli@latest @capacitor/android@latest cross-env --save
+          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 cross-env --save
 
       - name: Build web (for Capacitor)
         run: npm run build:cap
@@ -52,16 +52,30 @@ jobs:
           sed -i 's/com.getcapacitor.app/com.imadkrouni.carpenter3d/g' app/build.gradle 2>/dev/null || true
           sed -i 's/namespace ".*"/namespace "com.imadkrouni.carpenter3d"/' app/build.gradle 2>/dev/null || true
           sed -i 's/applicationId ".*"/applicationId "com.imadkrouni.carpenter3d"/' app/build.gradle 2>/dev/null || true
+          # زيادة ذاكرة Gradle
+          echo "org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m" >> gradle.properties
 
       - name: Build Debug APK
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
+        if: success()
         with:
           name: Carpenter3D-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
+
+      - name: Upload failure logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: |
+            android/app/build/reports/
+            android/build/reports/
+          retention-days: 7
+          if-no-files-found: ignore
